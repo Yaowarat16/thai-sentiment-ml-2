@@ -1,0 +1,16 @@
+[
+  {
+    "model": "LogisticRegression",
+    "cv_macro_f1_mean": 0.9818558627749405,
+    "cv_macro_f1_std": 0.004272432939988217,
+    "test_accuracy": 0.994,
+    "test_macro_f1": 0.9940260947371126
+  },
+  {
+    "model": "LinearSVM",
+    "cv_macro_f1_mean": 0.9894190485282728,
+    "cv_macro_f1_std": 0.003975564755806611,
+    "test_accuracy": 0.995,
+    "test_macro_f1": 0.9951368524458507
+  }
+]
