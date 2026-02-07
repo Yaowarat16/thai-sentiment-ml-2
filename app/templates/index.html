@@ -22,112 +22,308 @@
       --neg-text:#b91c1c;
     }
 
-    *{box-sizing:border-box;font-family:Inter,system-ui,sans-serif;}
-    body{margin:0;background:linear-gradient(180deg,#f9fafb,#f3f4f6);color:#1f2937;}
-    .container{max-width:1100px;margin:40px auto;padding:0 20px;}
-    h1{font-size:34px;margin-bottom:6px;}
-    .subtitle{color:#6b7280;margin-bottom:28px;}
+    * {
+      box-sizing: border-box;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
 
-    .card{background:var(--card);border:1px solid var(--border);border-radius:20px;
-      padding:26px;margin-bottom:26px;box-shadow:0 10px 25px rgba(0,0,0,.04);}
+    body {
+      margin: 0;
+      background: linear-gradient(180deg,#f9fafb,#f3f4f6);
+      color: #1f2937;
+    }
 
-    textarea{width:100%;height:120px;padding:16px;border-radius:16px;
-      border:1px solid var(--border);resize:none;font-size:16px;}
+    .container {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
 
-    .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
-    .chip{padding:8px 14px;border-radius:999px;font-size:14px;cursor:pointer;border:1px solid var(--border);}
-    .chip.pos{background:var(--pos-bg);color:var(--pos-text);}
-    .chip.neu{background:var(--neu-bg);color:var(--neu-text);}
-    .chip.neg{background:var(--neg-bg);color:var(--neg-text);}
-    .chip.mix{background:#eef2ff;color:#4338ca;}
+    h1 {
+      font-size: 34px;
+      margin-bottom: 6px;
+    }
 
-    .actions{display:flex;justify-content:space-between;align-items:center;margin-top:18px;}
-    .left-actions{display:flex;gap:10px;flex-wrap:wrap;}
-    button{border:none;border-radius:999px;padding:12px 22px;font-weight:600;cursor:pointer;}
-    button.primary{background:var(--primary);color:white;}
-    button.secondary{background:#e5e7eb;color:#374151;}
+    .subtitle {
+      color: #6b7280;
+      margin-bottom: 28px;
+    }
 
-    .results{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
-    .result-card{border-radius:18px;padding:22px;border:1px solid var(--border);}
-    .hidden{display:none;}
+    /* ---------- CARD ---------- */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 26px;
+      margin-bottom: 26px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      resize: none;
+      font-size: 16px;
+      background: #fafafa;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+    }
+
+    /* ---------- CHIPS ---------- */
+    .chips {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .chip {
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: .15s;
+    }
+
+    .chip:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .chip.pos { background: var(--pos-bg); color: var(--pos-text); }
+    .chip.neu { background: var(--neu-bg); color: var(--neu-text); }
+    .chip.neg { background: var(--neg-bg); color: var(--neg-text); }
+    .chip.mix { background: #eef2ff; color: #4338ca; }
+
+    /* ---------- ACTIONS ---------- */
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 18px;
+    }
+
+    .left-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 22px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: #4b5563;
+    }
+
+    /* ---------- RESULTS ---------- */
+    .results {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-top: 20px;
+    }
+
+    .result-card {
+      border-radius: 18px;
+      padding: 22px;
+      border: 1px solid var(--border);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .progress {
+      height: 10px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 14px 0;
+    }
+
+    .progress > div {
+      height: 100%;
+    }
+
+    .small {
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 
 <body>
 <div class="container">
+
   <h1>Thai Sentiment Analysis 🌈</h1>
   <div class="subtitle">Machine Learning Web Deployment</div>
 
   <div class="card">
     <label>ข้อความ</label>
-    <textarea id="text"></textarea>
+    <textarea id="text" placeholder="พิมพ์ข้อความภาษาไทยที่ต้องการวิเคราะห์ sentiment..."></textarea>
 
-    <!-- 🔥 RANDOM FROM DATASET -->
+    <!-- SAMPLE CHIPS -->
     <div class="chips">
-      <span class="chip pos" onclick="randomByLabel('positive')">😊 เชิงบวก</span>
-      <span class="chip neu" onclick="randomByLabel('neutral')">😐 กลาง</span>
-      <span class="chip neg" onclick="randomByLabel('negative')">😡 เชิงลบ</span>
-      <span class="chip mix" onclick="randomAny()">🎲 สุ่มรวม</span>
+      <span class="chip pos" onclick="setText(randomBy('pos'))">😊 เชิงบวก</span>
+      <span class="chip neu" onclick="setText(randomBy('neu'))">😐 กลาง</span>
+      <span class="chip neg" onclick="setText(randomBy('neg'))">😡 เชิงลบ</span>
+      <span class="chip mix" onclick="setText(randomBy('mix'))">😕 ประชด</span>
     </div>
 
+    <!-- ACTIONS -->
     <div class="actions">
       <div class="left-actions">
         <button class="primary" onclick="analyze()">Predict</button>
+        <button class="secondary" onclick="setText(randomAny())">🎲 สุ่มรวม</button>
         <a href="/errors"><button class="secondary">📊 Error Analysis</button></a>
       </div>
 
-      <label>
-        <input type="checkbox" id="abToggle"> A / B comparison
-      </label>
+      <div class="toggle">
+        <span>A / B comparison</span>
+        <input type="checkbox" id="abToggle">
+      </div>
     </div>
   </div>
 
+  <!-- RESULTS -->
   <div id="results" class="results hidden">
     <div id="modelA" class="result-card"></div>
     <div id="modelB" class="result-card"></div>
   </div>
+
 </div>
 
 <script>
-async function randomAny(){
-  const r = await fetch("/random");
-  const d = await r.json();
-  document.getElementById("text").value = d.text;
-}
+  const samples = {
+    pos: [
+      "ร้านนี้ดีมาก บริการประทับใจสุดๆ 😊",
+      "อาหารอร่อย บรรยากาศดีมาก",
+      "พนักงานสุภาพและเป็นกันเอง"
+    ],
+    neu: [
+      "ร้านนี้ก็โอเค ไม่ได้ดีหรือแย่",
+      "คุณภาพตามราคา",
+      "เฉยๆ ยังไม่ค่อยประทับใจ"
+    ],
+    neg: [
+      "แย่มาก เสียเวลามาใช้บริการ 😡",
+      "บริการช้ามากและไม่ใส่ใจลูกค้า",
+      "คุณภาพแย่กว่าที่คิด"
+    ],
+    mix: [
+      "ตอนแรกคิดว่าจะดี แต่ใช้จริงแล้วผิดหวัง",
+      "อาหารอร่อย แต่บริการช้ามาก",
+      "บรรยากาศดี แต่ราคาแพง"
+    ]
+  };
 
-async function randomByLabel(label){
-  const r = await fetch(`/random/${label}`);
-  const d = await r.json();
-  if(d.text){
-    document.getElementById("text").value = d.text;
+  function randomBy(type) {
+    const a = samples[type];
+    return a[Math.floor(Math.random() * a.length)];
   }
-}
 
-async function analyze(){
-  const text = document.getElementById("text").value;
-  const ab = document.getElementById("abToggle").checked;
-  document.getElementById("results").classList.remove("hidden");
-
-  if(ab){
-    const r = await fetch("/predict_ab",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({text})
-    });
-    const d = await r.json();
-    document.getElementById("modelA").innerHTML = JSON.stringify(d.model_a,null,2);
-    document.getElementById("modelB").innerHTML = JSON.stringify(d.model_b,null,2);
-  }else{
-    const r = await fetch("/predict",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({text})
-    });
-    const d = await r.json();
-    document.getElementById("modelA").innerHTML = JSON.stringify(d,null,2);
-    document.getElementById("modelB").innerHTML = "";
+  function randomAny() {
+    const all = [...samples.pos, ...samples.neu, ...samples.neg, ...samples.mix];
+    return all[Math.floor(Math.random() * all.length)];
   }
-}
+
+  function setText(t) {
+    document.getElementById("text").value = t;
+  }
+
+  function styleByLabel(label) {
+    if (label === "Positive") return ["var(--pos-bg)", "var(--pos-text)"];
+    if (label === "Negative") return ["var(--neg-bg)", "var(--neg-text)"];
+    return ["var(--neu-bg)", "var(--neu-text)"];
+  }
+
+  function render(el, d) {
+    const [bg, color] = styleByLabel(d.label);
+    el.style.background = bg;
+    el.innerHTML = `
+      <div class="badge" style="background:${bg};color:${color}">
+        ${d.label.toUpperCase()}
+      </div>
+      <div class="progress">
+        <div style="width:${d.confidence * 100}%;background:${color}"></div>
+      </div>
+      <div class="small">
+        Confidence: ${(d.confidence * 100).toFixed(2)}%<br>
+        Latency: ${d.latency_ms} ms<br>
+        Model: ${d.name} <b>(${d.version ?? "v1.0"})</b>
+      </div>
+    `;
+  }
+
+  async function analyze() {
+    const text = document.getElementById("text").value;
+    const ab = document.getElementById("abToggle").checked;
+    document.getElementById("results").classList.remove("hidden");
+
+    if (ab) {
+      const r = await fetch("/predict_ab", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+      const d = await r.json();
+      render(modelA, d.model_a);
+      render(modelB, d.model_b);
+    } else {
+      const r = await fetch("/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+      const d = await r.json();
+      render(modelA, d);
+      modelB.innerHTML = "";
+    }
+  }
 </script>
 </body>
 </html>
