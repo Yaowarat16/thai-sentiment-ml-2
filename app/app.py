@@ -29,9 +29,6 @@ templates = Jinja2Templates(directory=TEMPLATE_DIR)
 MODEL_A_PATH = os.path.join(OUTPUT_DIR, "LogisticRegression.joblib")
 MODEL_B_PATH = os.path.join(OUTPUT_DIR, "LinearSVM.joblib")
 
-if not os.path.exists(MODEL_A_PATH) or not os.path.exists(MODEL_B_PATH):
-    raise FileNotFoundError("Model files not found in outputs/")
-
 bundle_a = joblib.load(MODEL_A_PATH)
 bundle_b = joblib.load(MODEL_B_PATH)
 
@@ -73,7 +70,7 @@ def home(request: Request):
 # -------------------------
 @app.post("/predict")
 def predict(data: TextInput):
-    text = data.text.strip()
+    text = data.text
 
     start = time.perf_counter()
     label = model_a.predict([text])[0]
@@ -96,7 +93,7 @@ def predict(data: TextInput):
 # -------------------------
 @app.post("/predict_ab")
 def predict_ab(data: TextInput):
-    text = data.text.strip()
+    text = data.text
 
     # ---- Model A (Logistic Regression)
     t0 = time.perf_counter()
@@ -112,12 +109,12 @@ def predict_ab(data: TextInput):
     pb = model_b.predict([text])[0]
     lb = (time.perf_counter() - t0) * 1000
 
-    # Linear SVM: approximate confidence
+    # LinearSVM has no predict_proba → normalize decision score
     cb = None
     if hasattr(model_b, "decision_function"):
         score = model_b.decision_function([text])
-        raw = float(abs(score).max())
-        cb = min(raw / (raw + 1), 1.0)
+        cb = float(abs(score).max())
+        cb = min(cb / (cb + 1), 1.0)
 
     return JSONResponse({
         "model_a": {
@@ -158,7 +155,7 @@ def view_errors(request: Request):
     )
 
 # -------------------------
-# Model metadata (for API / report)
+# Model metadata (for debug / report)
 # -------------------------
 @app.get("/model/info")
 def model_info():
@@ -174,7 +171,7 @@ def model_info():
     }
 
 # -------------------------
-# Health check (Render / monitoring)
+# Health check
 # -------------------------
 @app.get("/health")
 def health():
