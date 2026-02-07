@@ -1,15 +1,16 @@
 import os
 import time
 import joblib
+import pandas as pd
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-# =========================
+# ==================================================
 # APP CONFIG
-# =========================
+# ==================================================
 app = FastAPI(
     title="Thai Sentiment Analysis",
     description="Thai Sentiment Classification with A/B Model Comparison",
@@ -22,9 +23,9 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
 
 templates = Jinja2Templates(directory=TEMPLATE_DIR)
 
-# =========================
+# ==================================================
 # LOAD MODELS
-# =========================
+# ==================================================
 MODEL_A_PATH = os.path.join(OUTPUT_DIR, "LogisticRegression.joblib")
 MODEL_B_PATH = os.path.join(OUTPUT_DIR, "LinearSVM.joblib")
 
@@ -40,16 +41,24 @@ MODEL_B_NAME = bundle_b.get("model_name", "Linear SVM")
 MODEL_A_VERSION = bundle_a.get("model_version", "v1.0")
 MODEL_B_VERSION = bundle_b.get("model_version", "v1.0")
 
-# =========================
+# ==================================================
+# FILE PATH
+# ==================================================
+MISCLASSIFIED_PATH = os.path.join(OUTPUT_DIR, "misclassified_10.csv")
+
+# ==================================================
 # SCHEMA
-# =========================
+# ==================================================
 class TextInput(BaseModel):
     text: str
 
-# =========================
+# ==================================================
 # ROUTES
-# =========================
+# ==================================================
 
+# -------------------------
+# Home (Web UI)
+# -------------------------
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     return templates.TemplateResponse(
@@ -61,13 +70,12 @@ def home(request: Request):
         }
     )
 
-
 # -------------------------
-# Single-model prediction (Model A  )
+# Single-model prediction (Model A)
 # -------------------------
 @app.post("/predict")
 def predict(data: TextInput):
-    text = data.text
+    text = data.text.strip()
 
     start = time.perf_counter()
     label = model_a.predict([text])[0]
@@ -77,22 +85,22 @@ def predict(data: TextInput):
     if hasattr(model_a, "predict_proba"):
         confidence = float(model_a.predict_proba([text])[0].max())
 
-    return JSONResponse({
+    return {
         "label": label,
         "confidence": round(confidence, 4) if confidence is not None else None,
         "latency_ms": round(latency, 2),
         "name": MODEL_A_NAME,
         "version": MODEL_A_VERSION
-    })
+    }
 
 # -------------------------
 # A/B comparison
 # -------------------------
 @app.post("/predict_ab")
 def predict_ab(data: TextInput):
-    text = data.text
+    text = data.text.strip()
 
-    # ---- Model A (Logistic Regression)
+    # ---- Model A
     t0 = time.perf_counter()
     pa = model_a.predict([text])[0]
     la = (time.perf_counter() - t0) * 1000
@@ -101,12 +109,11 @@ def predict_ab(data: TextInput):
     if hasattr(model_a, "predict_proba"):
         ca = float(model_a.predict_proba([text])[0].max())
 
-    # ---- Model B (Linear SVM)
+    # ---- Model B
     t0 = time.perf_counter()
     pb = model_b.predict([text])[0]
     lb = (time.perf_counter() - t0) * 1000
 
-    # LinearSVM: no predict_proba → normalize decision score
     cb = None
     if hasattr(model_b, "decision_function"):
         score = model_b.decision_function([text])
@@ -131,7 +138,26 @@ def predict_ab(data: TextInput):
     })
 
 # -------------------------
-# Model metadata (for debug / report)
+# Error Analysis Page (อ่าน CSV)
+# -------------------------
+@app.get("/errors", response_class=HTMLResponse)
+def view_errors(request: Request):
+    errors = []
+
+    if os.path.exists(MISCLASSIFIED_PATH):
+        df = pd.read_csv(MISCLASSIFIED_PATH)
+        errors = df.to_dict(orient="records")
+
+    return templates.TemplateResponse(
+        "errors.html",
+        {
+            "request": request,
+            "errors": errors
+        }
+    )
+
+# -------------------------
+# Model metadata
 # -------------------------
 @app.get("/model/info")
 def model_info():
