@@ -78,8 +78,14 @@ def home(request: Request):
 # -------------------------
 @app.post("/predict")
 def predict(data: TextInput):
+    # -------------------------
+    # Input
+    # -------------------------
     text = data.text.strip()
 
+    # -------------------------
+    # Predict
+    # -------------------------
     start = time.perf_counter()
     label = model_a.predict([text])[0]
     latency = (time.perf_counter() - start) * 1000
@@ -88,24 +94,32 @@ def predict(data: TextInput):
     if hasattr(model_a, "predict_proba"):
         confidence = float(model_a.predict_proba([text])[0].max())
 
-    # 🔥 บันทึกทุกครั้ง (demo realtime)
-    ERROR_LOG.insert(0, {
-        "text": text,
-        "true_label": "N/A (realtime)",
-        "pred_label": label,
-        "confidence": confidence,
-        "error_type": "user input / realtime"
-    })
+    # -------------------------
+    # Demo true label (สมมติ)
+    # -------------------------
+    true_label = "Neutral"   # ใช้เพื่อ demo realtime error
 
-    ERROR_LOG[:] = ERROR_LOG[:MAX_ERROR_LOG]
+    # -------------------------
+    # Save realtime error
+    # -------------------------
+    if label != true_label:
+        ERROR_LOG.insert(0, {
+            "text": text,
+            "true_label": true_label,
+            "pred_label": label,
+            "confidence": confidence,
+            "error_type": "realtime error"
+        })
 
+        # จำกัดจำนวน error
+        ERROR_LOG[:] = ERROR_LOG[:50]
+
+    # -------------------------
+    # Response
+    # -------------------------
     return {
         "label": label,
-        "confidence": round(confidence, 4) if confidence else None,
-        "latency_ms": round(latency, 2),
-        "name": MODEL_A_NAME,
-        "version": MODEL_A_VERSION
-    }
+        "confidence": round(confidence, 4) if confidence is not None e
 
 
 # -------------------------
