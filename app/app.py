@@ -79,36 +79,39 @@ def home(request: Request):
 @app.post("/predict")
 def predict(data: TextInput):
     text = data.text.strip()
-    true_label = data.true_label
 
     start = time.perf_counter()
-    pred_label = model_a.predict([text])[0]
+    label = model_a.predict([text])[0]
     latency = (time.perf_counter() - start) * 1000
 
     confidence = None
     if hasattr(model_a, "predict_proba"):
         confidence = float(model_a.predict_proba([text])[0].max())
 
-    
-    if true_label and true_label != pred_label:
+    # ❗ ตัวอย่างสมมติ true_label (ใช้เฉพาะ demo)
+    true_label = "Neutral"  # หรือมาจาก dataset ถ้ามี
+
+    # 🔴 ถ้าทำนายผิด → เก็บ error
+    if label != true_label:
         ERROR_LOG.insert(0, {
             "text": text,
             "true_label": true_label,
-            "pred_label": pred_label,
+            "pred_label": label,
             "confidence": confidence,
-            "error_type": "realtime"
+            "error_type": "realtime error"
         })
 
-        if len(ERROR_LOG) > MAX_ERROR_LOG:
-            ERROR_LOG.pop()
+        # จำกัดไม่ให้เยอะเกิน
+        ERROR_LOG[:] = ERROR_LOG[:50]
 
     return {
-        "label": pred_label,
+        "label": label,
         "confidence": round(confidence, 4) if confidence else None,
         "latency_ms": round(latency, 2),
         "name": MODEL_A_NAME,
         "version": MODEL_A_VERSION
     }
+
 # -------------------------
 # A/B comparison (Model A vs Model B)
 # -------------------------
@@ -163,7 +166,7 @@ def view_errors(request: Request):
         "errors.html",
         {
             "request": request,
-            "errors": ERROR_LOG   
+            "errors": ERROR_LOG   # 🔥 หัวใจของ realtime
         }
     )
 
