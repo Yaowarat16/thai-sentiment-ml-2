@@ -51,7 +51,6 @@ h1{
   margin-bottom:24px;
 }
 
-/* ---------- CARD ---------- */
 .card{
   background:var(--card);
   border:1px solid var(--border);
@@ -60,7 +59,6 @@ h1{
   box-shadow:0 10px 25px rgba(0,0,0,0.04);
 }
 
-/* ---------- TABLE ---------- */
 table{
   width:100%;
   border-collapse:collapse;
@@ -82,7 +80,6 @@ tr:hover{
   background:#fafafa;
 }
 
-/* ---------- BADGES ---------- */
 .badge{
   display:inline-block;
   padding:6px 14px;
@@ -100,7 +97,6 @@ tr:hover{
   color:var(--noise-text);
 }
 
-/* ---------- FOOTER ---------- */
 .footer{
   margin-top:22px;
   display:flex;
@@ -108,9 +104,7 @@ tr:hover{
   align-items:center;
 }
 
-a{
-  text-decoration:none;
-}
+a{ text-decoration:none; }
 
 button{
   border:none;
@@ -127,7 +121,6 @@ button:hover{
   background:#d1d5db;
 }
 
-/* ---------- EMPTY ---------- */
 .empty{
   text-align:center;
   padding:40px;
@@ -147,51 +140,56 @@ button:hover{
 
 <div class="card">
 
-{% if errors|length == 0 %}
+{% if errors and errors|length > 0 %}
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:40%">Text</th>
+      <th>True Label</th>
+      <th>Predicted</th>
+      <th>Confidence</th>
+      <th>Error Type</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for e in errors %}
+    <tr>
+      <td>{{ e.text | default("N/A") }}</td>
+
+      <td>
+        {% set t = e.true_label | default("N/A") %}
+        <span class="badge {{ t | lower if t in ['Positive','Neutral','Negative'] else 'neu' }}">
+          {{ t }}
+        </span>
+      </td>
+
+      <td>
+        {% set p = e.pred_label | default("N/A") %}
+        <span class="badge {{ p | lower if p in ['Positive','Neutral','Negative'] else 'neu' }}">
+          {{ p }}
+        </span>
+      </td>
+
+      <td>
+        {{ "%.2f"|format(e.confidence) if e.confidence is not none else "N/A" }}
+      </td>
+
+      <td>
+        <span class="badge error-type">
+          {{ e.error_type | default("N/A") }}
+        </span>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% else %}
   <div class="empty">
     ❌ ไม่พบข้อมูล error <br>
     กรุณารันขั้นตอน Error Analysis ก่อน
   </div>
-{% else %}
-
-<table>
-  <tr>
-    <th style="width:40%">Text</th>
-    <th>True Label</th>
-    <th>Predicted</th>
-    <th>Confidence</th>
-    <th>Error Type</th>
-  </tr>
-
-  {% for e in errors %}
-  <tr>
-    <td>{{ e.text }}</td>
-
-    <td>
-      <span class="badge {{ e.true_label | lower }}">
-        {{ e.true_label }}
-      </span>
-    </td>
-
-    <td>
-      <span class="badge {{ e.pred_label | lower }}">
-        {{ e.pred_label }}
-      </span>
-    </td>
-
-    <td>
-      {{ "%.2f"|format(e.confidence) }}
-    </td>
-
-    <td>
-      <span class="badge error-type">
-        {{ e.error_type if 'error_type' in e else 'N/A' }}
-      </span>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-
 {% endif %}
 
 </div>
