@@ -41,12 +41,19 @@ MODEL_B_NAME = bundle_b.get("model_name", "Linear SVM")
 MODEL_A_VERSION = bundle_a.get("model_version", "v1.0")
 MODEL_B_VERSION = bundle_b.get("model_version", "v1.0")
 
+# =========================
+# REAL-TIME ERROR STORAGE
+# =========================
+ERROR_LOG = []          # เก็บ error ล่าสุด
+MAX_ERROR_LOG = 10      # จำกัดไม่ให้ล้น
+
+
 # ==================================================
 # SCHEMA
 # ==================================================
 class TextInput(BaseModel):
     text: str
-
+    true_label: str | None = None
 # ==================================================
 # ROUTES
 # ==================================================
@@ -70,24 +77,37 @@ def home(request: Request):
 # -------------------------
 @app.post("/predict")
 def predict(data: TextInput):
-    text = data.text
+    text = data.text.strip()
+    true_label = data.true_label
 
     start = time.perf_counter()
-    label = model_a.predict([text])[0]
+    pred_label = model_a.predict([text])[0]
     latency = (time.perf_counter() - start) * 1000
 
     confidence = None
     if hasattr(model_a, "predict_proba"):
         confidence = float(model_a.predict_proba([text])[0].max())
 
-    return JSONResponse({
-        "label": label,
-        "confidence": round(confidence, 4) if confidence is not None else None,
+    # 🔴 เก็บ error แบบ REAL-TIME
+    if true_label and true_label != pred_label:
+        ERROR_LOG.insert(0, {
+            "text": text,
+            "true_label": true_label,
+            "pred_label": pred_label,
+            "confidence": confidence,
+            "error_type": "realtime"
+        })
+
+        if len(ERROR_LOG) > MAX_ERROR_LOG:
+            ERROR_LOG.pop()
+
+    return {
+        "label": pred_label,
+        "confidence": round(confidence, 4) if confidence else None,
         "latency_ms": round(latency, 2),
         "name": MODEL_A_NAME,
         "version": MODEL_A_VERSION
-    })
-
+    }
 # -------------------------
 # A/B comparison (Model A vs Model B)
 # -------------------------
