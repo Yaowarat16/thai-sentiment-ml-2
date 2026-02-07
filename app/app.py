@@ -1,3 +1,4 @@
+ERROR_LOG = []
 import os
 import time
 import joblib
