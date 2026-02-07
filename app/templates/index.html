@@ -339,9 +339,10 @@ function render(el,d){
     <div class="small">
       Confidence: ${(d.confidence*100).toFixed(2)}%<br>
       Latency: ${d.latency_ms} ms<br>
-      Model: ${d.name}
+      Model: ${d.name} <b>(${d.version ?? "v1.0"})</b>
     </div>`;
 }
+
 
 async function analyze(){
   const text=document.getElementById("text").value;
