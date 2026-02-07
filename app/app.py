@@ -37,6 +37,9 @@ model_b = bundle_b["pipeline"]
 MODEL_A_NAME = bundle_a.get("model_name", "Logistic Regression")
 MODEL_B_NAME = bundle_b.get("model_name", "Linear SVM")
 
+MODEL_A_VERSION = bundle_a.get("model_version", "v1.0")
+MODEL_B_VERSION = bundle_b.get("model_version", "v1.0")
+
 # =========================
 # SCHEMA
 # =========================
@@ -46,17 +49,21 @@ class TextInput(BaseModel):
 # =========================
 # ROUTES
 # =========================
+
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
-            "model_a": MODEL_A_NAME,
-            "model_b": MODEL_B_NAME
+            "model_a": f"{MODEL_A_NAME} ({MODEL_A_VERSION})",
+            "model_b": f"{MODEL_B_NAME} ({MODEL_B_VERSION})"
         }
     )
 
+# -------------------------
+# Single-model prediction (Model A)
+# -------------------------
 @app.post("/predict")
 def predict(data: TextInput):
     text = data.text
@@ -73,14 +80,18 @@ def predict(data: TextInput):
         "label": label,
         "confidence": round(confidence, 4) if confidence is not None else None,
         "latency_ms": round(latency, 2),
-        "name": MODEL_A_NAME
+        "name": MODEL_A_NAME,
+        "version": MODEL_A_VERSION
     })
 
+# -------------------------
+# A/B comparison
+# -------------------------
 @app.post("/predict_ab")
 def predict_ab(data: TextInput):
     text = data.text
 
-    # ---- Model A
+    # ---- Model A (Logistic Regression)
     t0 = time.perf_counter()
     pa = model_a.predict([text])[0]
     la = (time.perf_counter() - t0) * 1000
@@ -89,40 +100,54 @@ def predict_ab(data: TextInput):
     if hasattr(model_a, "predict_proba"):
         ca = float(model_a.predict_proba([text])[0].max())
 
-    # ---- Model B
+    # ---- Model B (Linear SVM)
     t0 = time.perf_counter()
     pb = model_b.predict([text])[0]
     lb = (time.perf_counter() - t0) * 1000
 
-    # LinearSVM has no predict_proba → use decision score
+    # LinearSVM: no predict_proba → normalize decision score
     cb = None
     if hasattr(model_b, "decision_function"):
         score = model_b.decision_function([text])
         cb = float(abs(score).max())
-        cb = min(cb / (cb + 1), 1.0)  # normalize to 0–1
+        cb = min(cb / (cb + 1), 1.0)
 
     return JSONResponse({
         "model_a": {
             "label": pa,
             "confidence": round(ca, 4) if ca is not None else None,
             "latency_ms": round(la, 2),
-            "name": MODEL_A_NAME
+            "name": MODEL_A_NAME,
+            "version": MODEL_A_VERSION
         },
         "model_b": {
             "label": pb,
             "confidence": round(cb, 4) if cb is not None else None,
             "latency_ms": round(lb, 2),
-            "name": MODEL_B_NAME
+            "name": MODEL_B_NAME,
+            "version": MODEL_B_VERSION
         }
     })
 
+# -------------------------
+# Model metadata (for debug / report)
+# -------------------------
 @app.get("/model/info")
 def model_info():
     return {
-        "model_a": MODEL_A_NAME,
-        "model_b": MODEL_B_NAME
+        "model_a": {
+            "name": MODEL_A_NAME,
+            "version": MODEL_A_VERSION
+        },
+        "model_b": {
+            "name": MODEL_B_NAME,
+            "version": MODEL_B_VERSION
+        }
     }
 
+# -------------------------
+# Health check
+# -------------------------
 @app.get("/health")
 def health():
     return {"status": "ok"}
