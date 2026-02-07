@@ -1,17 +1,15 @@
-ERROR_LOG = []
 import os
 import time
 import joblib
-import pandas as pd
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-# ==================================================
+# =========================
 # APP CONFIG
-# ==================================================
+# =========================
 app = FastAPI(
     title="Thai Sentiment Analysis",
     description="Thai Sentiment Classification with A/B Model Comparison",
@@ -24,9 +22,9 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
 
 templates = Jinja2Templates(directory=TEMPLATE_DIR)
 
-# ==================================================
+# =========================
 # LOAD MODELS
-# ==================================================
+# =========================
 MODEL_A_PATH = os.path.join(OUTPUT_DIR, "LogisticRegression.joblib")
 MODEL_B_PATH = os.path.join(OUTPUT_DIR, "LinearSVM.joblib")
 
@@ -43,25 +41,15 @@ MODEL_A_VERSION = bundle_a.get("model_version", "v1.0")
 MODEL_B_VERSION = bundle_b.get("model_version", "v1.0")
 
 # =========================
-# REAL-TIME ERROR STORAGE
-# =========================
-ERROR_LOG = []          # เก็บ error ล่าสุด
-MAX_ERROR_LOG = 10      # จำกัดไม่ให้ล้น
-
-
-# ==================================================
 # SCHEMA
-# ==================================================
+# =========================
 class TextInput(BaseModel):
     text: str
-    true_label: str | None = None
-# ==================================================
-# ROUTES
-# ==================================================
 
-# -------------------------
-# Home (Web UI)
-# -------------------------
+# =========================
+# ROUTES
+# =========================
+
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     return templates.TemplateResponse(
@@ -73,19 +61,14 @@ def home(request: Request):
         }
     )
 
+
 # -------------------------
-# Single-model prediction (Model A)
+# Single-model prediction (Model A  )
 # -------------------------
 @app.post("/predict")
 def predict(data: TextInput):
-    # -------------------------
-    # Input
-    # -------------------------
-    text = data.text.strip()
+    text = data.text
 
-    # -------------------------
-    # Predict
-    # -------------------------
     start = time.perf_counter()
     label = model_a.predict([text])[0]
     latency = (time.perf_counter() - start) * 1000
@@ -94,39 +77,16 @@ def predict(data: TextInput):
     if hasattr(model_a, "predict_proba"):
         confidence = float(model_a.predict_proba([text])[0].max())
 
-    # -------------------------
-    # Demo true label
-    # -------------------------
-    true_label = "Neutral"
-
-    # -------------------------
-    # Save realtime error
-    # -------------------------
-    if label != true_label:
-        ERROR_LOG.insert(0, {
-            "text": text,
-            "true_label": true_label,
-            "pred_label": label,
-            "confidence": confidence,
-            "error_type": "realtime error"
-        })
-
-        ERROR_LOG[:] = ERROR_LOG[:50]
-
-    # -------------------------
-    # Response
-    # -------------------------
-    return {
+    return JSONResponse({
         "label": label,
         "confidence": round(confidence, 4) if confidence is not None else None,
         "latency_ms": round(latency, 2),
         "name": MODEL_A_NAME,
         "version": MODEL_A_VERSION
-    }
-
+    })
 
 # -------------------------
-# A/B comparison (Model A vs Model B)
+# A/B comparison
 # -------------------------
 @app.post("/predict_ab")
 def predict_ab(data: TextInput):
@@ -146,7 +106,7 @@ def predict_ab(data: TextInput):
     pb = model_b.predict([text])[0]
     lb = (time.perf_counter() - t0) * 1000
 
-    # LinearSVM has no predict_proba → normalize decision score
+    # LinearSVM: no predict_proba → normalize decision score
     cb = None
     if hasattr(model_b, "decision_function"):
         score = model_b.decision_function([text])
@@ -169,20 +129,6 @@ def predict_ab(data: TextInput):
             "version": MODEL_B_VERSION
         }
     })
-
-# -------------------------
-# Error Analysis Page
-# -------------------------
-@app.get("/errors", response_class=HTMLResponse)
-def view_errors(request: Request):
-    return templates.TemplateResponse(
-        "errors.html",
-        {
-            "request": request,
-            "errors": ERROR_LOG   # 🔥 หัวใจของ realtime
-        }
-    )
-
 
 # -------------------------
 # Model metadata (for debug / report)
