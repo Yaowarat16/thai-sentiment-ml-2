@@ -57,7 +57,7 @@ class TextInput(BaseModel):
 # ==================================================
 
 # -------------------------
-# Home (Web UI)
+# Home
 # -------------------------
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
@@ -71,7 +71,7 @@ def home(request: Request):
     )
 
 # -------------------------
-# Single-model prediction (Model A)
+# Predict (Model A)
 # -------------------------
 @app.post("/predict")
 def predict(data: TextInput):
@@ -94,7 +94,7 @@ def predict(data: TextInput):
     }
 
 # -------------------------
-# A/B comparison
+# Predict A/B
 # -------------------------
 @app.post("/predict_ab")
 def predict_ab(data: TextInput):
@@ -138,7 +138,7 @@ def predict_ab(data: TextInput):
     })
 
 # -------------------------
-# Error Analysis Page (อ่าน CSV)
+# Error Analysis (อ่าน CSV)
 # -------------------------
 @app.get("/errors", response_class=HTMLResponse)
 def view_errors(request: Request):
@@ -146,6 +146,12 @@ def view_errors(request: Request):
 
     if os.path.exists(MISCLASSIFIED_PATH):
         df = pd.read_csv(MISCLASSIFIED_PATH)
+
+        # ป้องกันกรณี CSV ไม่มี column บางตัว
+        for col in ["text", "true_label", "pred_label", "confidence", "error_type"]:
+            if col not in df.columns:
+                df[col] = ""
+
         errors = df.to_dict(orient="records")
 
     return templates.TemplateResponse(
@@ -157,7 +163,7 @@ def view_errors(request: Request):
     )
 
 # -------------------------
-# Model metadata
+# Model info
 # -------------------------
 @app.get("/model/info")
 def model_info():
@@ -173,7 +179,7 @@ def model_info():
     }
 
 # -------------------------
-# Health check
+# Health
 # -------------------------
 @app.get("/health")
 def health():
