@@ -7,7 +7,6 @@
 
 <style>
 :root{
-  --bg:#f9fafb;
   --card:#ffffff;
   --border:#e5e7eb;
 
@@ -43,7 +42,7 @@ body{
 
 h1{
   font-size:30px;
-  margin-bottom:8px;
+  margin-bottom:6px;
 }
 
 .subtitle{
@@ -51,7 +50,6 @@ h1{
   margin-bottom:24px;
 }
 
-/* ---------- CARD ---------- */
 .card{
   background:var(--card);
   border:1px solid var(--border);
@@ -60,7 +58,6 @@ h1{
   box-shadow:0 10px 25px rgba(0,0,0,0.04);
 }
 
-/* ---------- TABLE ---------- */
 table{
   width:100%;
   border-collapse:collapse;
@@ -82,7 +79,6 @@ tr:hover{
   background:#fafafa;
 }
 
-/* ---------- BADGES ---------- */
 .badge{
   display:inline-block;
   padding:6px 14px;
@@ -100,7 +96,6 @@ tr:hover{
   color:var(--noise-text);
 }
 
-/* ---------- FOOTER ---------- */
 .footer{
   margin-top:22px;
   display:flex;
@@ -108,9 +103,7 @@ tr:hover{
   align-items:center;
 }
 
-a{
-  text-decoration:none;
-}
+a{ text-decoration:none; }
 
 button{
   border:none;
@@ -127,7 +120,6 @@ button:hover{
   background:#d1d5db;
 }
 
-/* ---------- EMPTY ---------- */
 .empty{
   text-align:center;
   padding:40px;
@@ -147,51 +139,61 @@ button:hover{
 
 <div class="card">
 
-{% if errors|length == 0 %}
-  <div class="empty">
-    ❌ ไม่พบข้อมูล error <br>
-    กรุณารันขั้นตอน Error Analysis ก่อน
-  </div>
-{% else %}
+{% if errors|length > 0 %}
 
 <table>
-  <tr>
-    <th style="width:40%">Text</th>
-    <th>True Label</th>
-    <th>Predicted</th>
-    <th>Confidence</th>
-    <th>Error Type</th>
-  </tr>
+  <thead>
+    <tr>
+      <th style="width:40%">Text</th>
+      <th>True Label</th>
+      <th>Predicted</th>
+      <th>Confidence</th>
+      <th>Error Type</th>
+    </tr>
+  </thead>
 
+  <tbody>
   {% for e in errors %}
-  <tr>
-    <td>{{ e.text }}</td>
+    {% set t = (e.get("true_label") or "Neutral") | lower %}
+    {% set p = (e.get("pred_label") or "Neutral") | lower %}
+    <tr>
+      <td>{{ e.get("text", "N/A") }}</td>
 
-    <td>
-      <span class="badge {{ e.true_label | lower }}">
-        {{ e.true_label }}
-      </span>
-    </td>
+      <td>
+        <span class="badge {{ t if t in ['positive','neutral','negative'] else 'neu' }}">
+          {{ t|capitalize }}
+        </span>
+      </td>
 
-    <td>
-      <span class="badge {{ e.pred_label | lower }}">
-        {{ e.pred_label }}
-      </span>
-    </td>
+      <td>
+        <span class="badge {{ p if p in ['positive','neutral','negative'] else 'neu' }}">
+          {{ p|capitalize }}
+        </span>
+      </td>
 
-    <td>
-      {{ "%.2f"|format(e.confidence) }}
-    </td>
+      <td>
+        {% if e.get("confidence") is not none %}
+          {{ "%.2f"|format(e.get("confidence")|float) }}
+        {% else %}
+          N/A
+        {% endif %}
+      </td>
 
-    <td>
-      <span class="badge error-type">
-        {{ e.error_type if 'error_type' in e else 'N/A' }}
-      </span>
-    </td>
-  </tr>
+      <td>
+        <span class="badge error-type">
+          {{ e.get("error_type", "N/A") }}
+        </span>
+      </td>
+    </tr>
   {% endfor %}
+  </tbody>
 </table>
 
+{% else %}
+  <div class="empty">
+    ❌ ไม่พบข้อมูล error <br>
+    กรุณาตรวจสอบไฟล์ <b>outputs/misclassified_10.csv</b>
+  </div>
 {% endif %}
 
 </div>
