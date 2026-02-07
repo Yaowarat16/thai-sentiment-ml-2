@@ -88,7 +88,7 @@ def predict(data: TextInput):
     if hasattr(model_a, "predict_proba"):
         confidence = float(model_a.predict_proba([text])[0].max())
 
-    # 🔴 เก็บ error แบบ REAL-TIME
+    
     if true_label and true_label != pred_label:
         ERROR_LOG.insert(0, {
             "text": text,
@@ -158,21 +158,14 @@ def predict_ab(data: TextInput):
 # -------------------------
 @app.get("/errors", response_class=HTMLResponse)
 def view_errors(request: Request):
-    error_path = os.path.join(OUTPUT_DIR, "misclassified_10.csv")
-
-    if os.path.exists(error_path):
-        df = pd.read_csv(error_path)
-        errors = df.to_dict(orient="records")
-    else:
-        errors = []
-
     return templates.TemplateResponse(
         "errors.html",
         {
             "request": request,
-            "errors": errors
+            "errors": ERROR_LOG   
         }
     )
+
 
 # -------------------------
 # Model metadata (for debug / report)
