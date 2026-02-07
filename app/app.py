@@ -88,21 +88,16 @@ def predict(data: TextInput):
     if hasattr(model_a, "predict_proba"):
         confidence = float(model_a.predict_proba([text])[0].max())
 
-    # ❗ ตัวอย่างสมมติ true_label (ใช้เฉพาะ demo)
-    true_label = "Neutral"  # หรือมาจาก dataset ถ้ามี
+    # 🔥 บันทึกทุกครั้ง (demo realtime)
+    ERROR_LOG.insert(0, {
+        "text": text,
+        "true_label": "N/A (realtime)",
+        "pred_label": label,
+        "confidence": confidence,
+        "error_type": "user input / realtime"
+    })
 
-    # 🔴 ถ้าทำนายผิด → เก็บ error
-    if label != true_label:
-        ERROR_LOG.insert(0, {
-            "text": text,
-            "true_label": true_label,
-            "pred_label": label,
-            "confidence": confidence,
-            "error_type": "realtime error"
-        })
-
-        # จำกัดไม่ให้เยอะเกิน
-        ERROR_LOG[:] = ERROR_LOG[:50]
+    ERROR_LOG[:] = ERROR_LOG[:MAX_ERROR_LOG]
 
     return {
         "label": label,
@@ -111,6 +106,7 @@ def predict(data: TextInput):
         "name": MODEL_A_NAME,
         "version": MODEL_A_VERSION
     }
+
 
 # -------------------------
 # A/B comparison (Model A vs Model B)
