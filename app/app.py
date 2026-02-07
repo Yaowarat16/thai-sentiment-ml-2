@@ -64,7 +64,20 @@ def home(request: Request):
             "model_b": f"{MODEL_B_NAME} ({MODEL_B_VERSION})"
         }
     )
+# =========================
+#  RANDOM SAMPLE FROM DATASET
+# =========================
+@app.get("/sample/random")
+def random_sample():
+    data_path = os.path.join(BASE_DIR, "data", "2.synthetic_wisesight_like_thai_sentiment_hard_5000 (1).csv")
 
+    df = pd.read_csv(data_path)[["text", "sentiment"]].dropna()
+    row = df.sample(1).iloc[0]
+
+    return {
+        "text": row["text"],
+        "sentiment": row["sentiment"]
+    }
 # -------------------------
 # Single-model prediction (Model A)
 # -------------------------
