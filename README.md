@@ -49,6 +49,45 @@ uvicorn app.app:app --reload
 ## 🚀 การ Deploy ระบบ
 - ระบบสามารถนำไป Deploy เป็น Web Application ได้ โดยใช้ FastAPI + Uvicorn ตั้งค่า Start Command เป็น
   - uvicorn app.app:app --host 0.0.0.0 --port $PORT
+## 🚀 วิธี Deploy Thai Sentiment Analysis บน Render
+- ระบบนี้ถูกออกแบบให้สามารถ Deploy เป็น Web Application ได้โดยใช้ FastAPI + Uvicorn และโฮสต์บน Rende
+- 1️⃣ เตรียมไฟล์ก่อน Deploy ตรวจสอบว่าในโปรเจกต์มีไฟล์สำคัญครบดังนี้
+- thai-sentiment-ml/
+- ├─ app/
+- │  ├─ app.py
+- │  └─ templates/
+- │     ├─ index.html
+- │     └─ errors.html
+- │
+- ├─ outputs/
+- │  ├─ LogisticRegression.joblib
+- │  ├─ LinearSVM.joblib
+- │  └─ misclassified_10.csv
+- │
+- ├─ requirements.txt
+- └─ README.md
+- 2️⃣ ตั้งค่า requirements.txt ตรวจสอบให้มีไลบรารี
+- 3️⃣ Push โค้ดขึ้น GitHub สร้าง Repository บน GitHub Push โค้ดทั้งหมดขึ้น GitHub
+- 4️⃣ สร้าง Web Service บน Render เข้าเว็บไซต์
+  - 👉 https://render.com
+  - Login ด้วย GitHub
+  - กด New + → Web Service
+  - เลือก Repository ของโปรเจกต์
+- 5️⃣ ตั้งค่า Web Service 
+  - 🔧 Basic Settings
+  - Environment	Python
+  - Region	Singapore (หรือ Default)
+  - Branch	main
+- ▶️ Start Command ใส่คำสั่งนี้ ตรงตัว
+  - uvicorn app.app:app --host 0.0.0.0 --port $PORT
+- 📦 Build Command
+  - ปล่อยว่าง หรือใช้ค่า Default
+- 6️⃣ กด Deploy
+  - Render จะเริ่ม:ติดตั้ง dependencies จาก requirements.txt
+  - รัน FastAPI รอจนขึ้นสถานะ Live
+- 7️⃣ เข้าใช้งานระบบหลัง Deploy
+  - เมื่อ Deploy สำเร็จ Render จะให้ URL เช่น
+  - https://thai-sentiment-ml-2.onrender.com
 ## 📌 ขอบเขตและข้อจำกัด
 - เป็นการวิเคราะห์อารมณ์ระดับพื้นฐาน
 - ยังไม่รองรับ sarcasm ที่ซับซ้อน
