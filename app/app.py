@@ -95,9 +95,9 @@ def predict(data: TextInput):
         confidence = float(model_a.predict_proba([text])[0].max())
 
     # -------------------------
-    # Demo true label (สมมติ)
+    # Demo true label
     # -------------------------
-    true_label = "Neutral"   # ใช้เพื่อ demo realtime error
+    true_label = "Neutral"
 
     # -------------------------
     # Save realtime error
@@ -111,7 +111,6 @@ def predict(data: TextInput):
             "error_type": "realtime error"
         })
 
-        # จำกัดจำนวน error
         ERROR_LOG[:] = ERROR_LOG[:50]
 
     # -------------------------
@@ -119,7 +118,11 @@ def predict(data: TextInput):
     # -------------------------
     return {
         "label": label,
-        "confidence": round(confidence, 4) if confidence is not None e
+        "confidence": round(confidence, 4) if confidence is not None else None,
+        "latency_ms": round(latency, 2),
+        "name": MODEL_A_NAME,
+        "version": MODEL_A_VERSION
+    }
 
 
 # -------------------------
