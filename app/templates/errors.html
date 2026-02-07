@@ -1,1 +1,212 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Error Analysis</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
+<style>
+:root{
+  --bg:#f9fafb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+
+  --pos-bg:#e8f8f1;
+  --pos-text:#047857;
+
+  --neu-bg:#fff6e5;
+  --neu-text:#92400e;
+
+  --neg-bg:#fdecec;
+  --neg-text:#b91c1c;
+
+  --noise-bg:#eef2ff;
+  --noise-text:#4338ca;
+}
+
+*{
+  box-sizing:border-box;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body{
+  margin:0;
+  background:linear-gradient(180deg,#f9fafb,#f3f4f6);
+  color:#1f2937;
+}
+
+.container{
+  max-width:1200px;
+  margin:40px auto;
+  padding:0 20px;
+}
+
+h1{
+  font-size:30px;
+  margin-bottom:8px;
+}
+
+.subtitle{
+  color:#6b7280;
+  margin-bottom:24px;
+}
+
+/* ---------- CARD ---------- */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:26px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.04);
+}
+
+/* ---------- TABLE ---------- */
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+
+th,td{
+  border-bottom:1px solid var(--border);
+  padding:12px 10px;
+  vertical-align:top;
+}
+
+th{
+  background:#f3f4f6;
+  text-align:left;
+}
+
+tr:hover{
+  background:#fafafa;
+}
+
+/* ---------- BADGES ---------- */
+.badge{
+  display:inline-block;
+  padding:6px 14px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600;
+}
+
+.pos{ background:var(--pos-bg); color:var(--pos-text); }
+.neu{ background:var(--neu-bg); color:var(--neu-text); }
+.neg{ background:var(--neg-bg); color:var(--neg-text); }
+
+.error-type{
+  background:var(--noise-bg);
+  color:var(--noise-text);
+}
+
+/* ---------- FOOTER ---------- */
+.footer{
+  margin-top:22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+a{
+  text-decoration:none;
+}
+
+button{
+  border:none;
+  border-radius:999px;
+  padding:10px 20px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  background:#e5e7eb;
+  color:#374151;
+}
+
+button:hover{
+  background:#d1d5db;
+}
+
+/* ---------- EMPTY ---------- */
+.empty{
+  text-align:center;
+  padding:40px;
+  color:#6b7280;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>📊 Error Analysis</h1>
+<div class="subtitle">
+ตัวอย่างข้อความที่โมเดลทำนายผิด พร้อมการวิเคราะห์ประเภทของข้อผิดพลาด
+</div>
+
+<div class="card">
+
+{% if errors|length == 0 %}
+  <div class="empty">
+    ❌ ไม่พบข้อมูล error <br>
+    กรุณารันขั้นตอน Error Analysis ก่อน
+  </div>
+{% else %}
+
+<table>
+  <tr>
+    <th style="width:40%">Text</th>
+    <th>True Label</th>
+    <th>Predicted</th>
+    <th>Confidence</th>
+    <th>Error Type</th>
+  </tr>
+
+  {% for e in errors %}
+  <tr>
+    <td>{{ e.text }}</td>
+
+    <td>
+      <span class="badge {{ e.true_label | lower }}">
+        {{ e.true_label }}
+      </span>
+    </td>
+
+    <td>
+      <span class="badge {{ e.pred_label | lower }}">
+        {{ e.pred_label }}
+      </span>
+    </td>
+
+    <td>
+      {{ "%.2f"|format(e.confidence) }}
+    </td>
+
+    <td>
+      <span class="badge error-type">
+        {{ e.error_type if 'error_type' in e else 'N/A' }}
+      </span>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% endif %}
+
+</div>
+
+<div class="footer">
+  <a href="/">
+    <button>⬅ กลับหน้าหลัก</button>
+  </a>
+
+  <div style="font-size:13px;color:#6b7280">
+    Error Analysis • Thai Sentiment Analysis
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>
