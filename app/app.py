@@ -8,9 +8,9 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-# =========================
+# ==================================================
 # APP CONFIG
-# =========================
+# ==================================================
 app = FastAPI(
     title="Thai Sentiment Analysis",
     description="Thai Sentiment Classification with A/B Model Comparison",
@@ -23,11 +23,14 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
 
 templates = Jinja2Templates(directory=TEMPLATE_DIR)
 
-# =========================
+# ==================================================
 # LOAD MODELS
-# =========================
+# ==================================================
 MODEL_A_PATH = os.path.join(OUTPUT_DIR, "LogisticRegression.joblib")
 MODEL_B_PATH = os.path.join(OUTPUT_DIR, "LinearSVM.joblib")
+
+if not os.path.exists(MODEL_A_PATH) or not os.path.exists(MODEL_B_PATH):
+    raise FileNotFoundError("Model files not found in outputs/")
 
 bundle_a = joblib.load(MODEL_A_PATH)
 bundle_b = joblib.load(MODEL_B_PATH)
@@ -41,15 +44,15 @@ MODEL_B_NAME = bundle_b.get("model_name", "Linear SVM")
 MODEL_A_VERSION = bundle_a.get("model_version", "v1.0")
 MODEL_B_VERSION = bundle_b.get("model_version", "v1.0")
 
-# =========================
+# ==================================================
 # SCHEMA
-# =========================
+# ==================================================
 class TextInput(BaseModel):
     text: str
 
-# =========================
+# ==================================================
 # ROUTES
-# =========================
+# ==================================================
 
 # -------------------------
 # Home (Web UI)
@@ -70,7 +73,7 @@ def home(request: Request):
 # -------------------------
 @app.post("/predict")
 def predict(data: TextInput):
-    text = data.text
+    text = data.text.strip()
 
     start = time.perf_counter()
     label = model_a.predict([text])[0]
@@ -93,7 +96,7 @@ def predict(data: TextInput):
 # -------------------------
 @app.post("/predict_ab")
 def predict_ab(data: TextInput):
-    text = data.text
+    text = data.text.strip()
 
     # ---- Model A (Logistic Regression)
     t0 = time.perf_counter()
@@ -109,12 +112,12 @@ def predict_ab(data: TextInput):
     pb = model_b.predict([text])[0]
     lb = (time.perf_counter() - t0) * 1000
 
-    # LinearSVM has no predict_proba → normalize decision score
+    # Linear SVM: approximate confidence
     cb = None
     if hasattr(model_b, "decision_function"):
         score = model_b.decision_function([text])
-        cb = float(abs(score).max())
-        cb = min(cb / (cb + 1), 1.0)
+        raw = float(abs(score).max())
+        cb = min(raw / (raw + 1), 1.0)
 
     return JSONResponse({
         "model_a": {
@@ -140,11 +143,11 @@ def predict_ab(data: TextInput):
 def view_errors(request: Request):
     error_path = os.path.join(OUTPUT_DIR, "misclassified_10.csv")
 
-    if not os.path.exists(error_path):
-        errors = []
-    else:
+    if os.path.exists(error_path):
         df = pd.read_csv(error_path)
         errors = df.to_dict(orient="records")
+    else:
+        errors = []
 
     return templates.TemplateResponse(
         "errors.html",
@@ -155,7 +158,7 @@ def view_errors(request: Request):
     )
 
 # -------------------------
-# Model metadata (for debug / report)
+# Model metadata (for API / report)
 # -------------------------
 @app.get("/model/info")
 def model_info():
@@ -171,7 +174,7 @@ def model_info():
     }
 
 # -------------------------
-# Health check
+# Health check (Render / monitoring)
 # -------------------------
 @app.get("/health")
 def health():
