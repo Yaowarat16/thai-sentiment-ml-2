@@ -1,6 +1,7 @@
 import os
 import time
 import joblib
+import pandas as pd
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -50,6 +51,9 @@ class TextInput(BaseModel):
 # ROUTES
 # =========================
 
+# -------------------------
+# Home (Web UI)
+# -------------------------
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     return templates.TemplateResponse(
@@ -85,7 +89,7 @@ def predict(data: TextInput):
     })
 
 # -------------------------
-# A/B comparison
+# A/B comparison (Model A vs Model B)
 # -------------------------
 @app.post("/predict_ab")
 def predict_ab(data: TextInput):
@@ -105,7 +109,7 @@ def predict_ab(data: TextInput):
     pb = model_b.predict([text])[0]
     lb = (time.perf_counter() - t0) * 1000
 
-    # LinearSVM: no predict_proba → normalize decision score
+    # LinearSVM has no predict_proba → normalize decision score
     cb = None
     if hasattr(model_b, "decision_function"):
         score = model_b.decision_function([text])
@@ -128,6 +132,27 @@ def predict_ab(data: TextInput):
             "version": MODEL_B_VERSION
         }
     })
+
+# -------------------------
+# Error Analysis Page
+# -------------------------
+@app.get("/errors", response_class=HTMLResponse)
+def view_errors(request: Request):
+    error_path = os.path.join(OUTPUT_DIR, "misclassified_10.csv")
+
+    if not os.path.exists(error_path):
+        errors = []
+    else:
+        df = pd.read_csv(error_path)
+        errors = df.to_dict(orient="records")
+
+    return templates.TemplateResponse(
+        "errors.html",
+        {
+            "request": request,
+            "errors": errors
+        }
+    )
 
 # -------------------------
 # Model metadata (for debug / report)
